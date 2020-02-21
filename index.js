@@ -1,10 +1,15 @@
 const net = require('net');
+const path = require('path');
+const fs = require('fs');
 
 const buildHeaders = require('./buildHeaders');
 
 const server = net.createServer();
 const CLOSE_SIGNAL_STRING = '\r\n\r\n';
 const LINE_BREAK = '\r\n';
+
+const indexPath = path.join(__dirname, 'index.html');
+const indexFile = fs.readFileSync(indexPath);
 
 server.on('connection', socket => {
 	let finalString = '';
@@ -20,15 +25,16 @@ server.on('connection', socket => {
 			const [verb, path, httpVersion] = requestData.split(/\s/);
 
 			const headersObject = requestHeaders.reduce(buildHeaders, {});
-			const response = `Your path was / \r\n`;
 
 			if (verb === 'GET') {
 				switch (path) {
 					case '/':
 						socket.write(`${httpVersion}, 200, OK \r\n`);
 						socket.write('content-type: text/html \r\n');
-						socket.write(`content-length: ${response.length} \r\n\r\n`);
-						socket.write(response);
+						socket.write(`content-length: ${indexFile.length} \r\n\r\n`);
+						socket.write(indexFile);
+						break;
+					case '/favicon':
 						break;
 					default:
 						break;
