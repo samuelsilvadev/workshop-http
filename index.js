@@ -4,6 +4,7 @@ const buildHeaders = require('./buildHeaders');
 
 const server = net.createServer();
 const CLOSE_SIGNAL_STRING = '\r\n\r\n';
+const LINE_BREAK = '\r\n';
 
 server.on('connection', socket => {
 	let finalString = '';
@@ -14,19 +15,20 @@ server.on('connection', socket => {
 		finalString += stringifiedData;
 
 		if (finalString.includes(CLOSE_SIGNAL_STRING)) {
-			const splittedString = finalString.split(/\s/);
-			const [verb, path, httpVersion] = splittedString;
-			const headers = finalString.split('\r\n').slice(1);
+			const requestLines = finalString.split(LINE_BREAK);
+			const [requestData, ...requestHeaders] = requestLines;
+			const [verb, path, httpVersion] = requestData.split(/\s/);
 
-			const headersObject = headers.reduce(buildHeaders, {});
+			const headersObject = requestHeaders.reduce(buildHeaders, {});
+			const response = `Your path was / \r\n`;
 
 			if (verb === 'GET') {
 				switch (path) {
 					case '/':
 						socket.write(`${httpVersion}, 200, OK \r\n`);
-						socket.write('content-Type: text/html \r\n');
-						socket.write(`content-Length', ${finalString.length} \r\n`);
-						socket.write(`Your path was / \r\n`);
+						socket.write('content-type: text/html \r\n');
+						socket.write(`content-length: ${response.length} \r\n\r\n`);
+						socket.write(response);
 						break;
 					default:
 						break;
