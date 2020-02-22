@@ -9,7 +9,7 @@ const server = net.createServer();
 const CLOSE_SIGNAL_STRING = '\r\n\r\n';
 const LINE_BREAK = '\r\n';
 
-const indexPath = path.join(__dirname, 'index.html');
+const indexPath = path.join(__dirname, 'views', 'index.html');
 const indexFile = fs.readFileSync(indexPath);
 
 const requestsQueue = [];
@@ -85,10 +85,12 @@ server.on('connection', socket => {
 					}
 					default:
 						socket.write(`${httpVersion}, 404, Not Found \r\n\r\n`);
+						finalString = '';
 						break;
 				}
 			} else {
 				socket.write(`${httpVersion}, 405, Method Not Allowed \r\n\r\n`);
+				finalString = '';
 			}
 
 			if (headersObject.connection === 'keep-alive') {
@@ -97,6 +99,7 @@ server.on('connection', socket => {
 				return;
 			}
 
+			console.log('will close connection');
 			unlistenRequestQueue();
 			socket.destroy();
 		}
